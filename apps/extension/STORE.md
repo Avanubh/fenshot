@@ -16,6 +16,9 @@ Chess screenshot to FEN in one click: reads the board on any page, and whole gam
 
 ## Detailed description
 
+New: whole games. On chessgames.com, Lichess, a chess.com article or a
+blog, one click reads the full game and opens it for review.
+
 See a chess position anywhere, on lichess, chess.com, a YouTube video, a
 book PDF, a blog post, and want to analyze it? Click the fenshot icon.
 
@@ -94,6 +97,12 @@ about the user or the page.
   runtime. Upload the `fenshot-source-<version>.zip` produced by
   `git archive` (see "Packaging" below); the README covers the build.
 - data_collection_permissions in the manifest stays `required: ["none"]`.
+
+## Release notes (0.4.4)
+
+A quiet, one-time ask for a store rating after your 5th successful read.
+Nothing else changes: no new permissions, no data leaves your device
+(the counter lives in the popup's own local storage).
 
 ## Packaging
 

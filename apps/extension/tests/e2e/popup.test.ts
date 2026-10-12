@@ -257,6 +257,55 @@ describe("popup end-to-end", () => {
   });
 });
 
+describe("popup end-to-end: rating ask", () => {
+  // Needs a fixture with a real board IMAGE (chessgames.html): the ask
+  // counts confident screenshot reads, not game cards. The popup's
+  // localStorage is per extension origin and persists across popup
+  // opens within the context, so the counter is primed to 4 and the
+  // 5th read must show the ask, once.
+  const POSITION_BOARD = ".card:not(.games) .board, .board:not(.mini)";
+  it("appears on the 5th confident read, as one line, and never again after an answer", async () => {
+    const first = await openPopupOn("chessgames.html");
+    try {
+      await first.popup.waitForSelector(POSITION_BOARD);
+      // Earlier tests in this file may have read boards on the same
+      // extension instance; only the fact of counting is asserted here.
+      expect(Number(await first.popup.evaluate(() => localStorage.getItem("fenshot:reads")))).toBeGreaterThanOrEqual(1);
+      expect(await first.popup.locator(".rating-ask").count()).toBe(0);
+      await first.popup.evaluate(() => localStorage.setItem("fenshot:reads", "4"));
+    } finally {
+      await first.popup.close();
+      await first.page.close();
+    }
+    const fifth = await openPopupOn("chessgames.html");
+    try {
+      await fifth.popup.waitForSelector(POSITION_BOARD);
+      const ask = fifth.popup.locator(".rating-ask");
+      await ask.waitFor({ timeout: 5_000 });
+      expect(await ask.textContent()).toContain("Useful?");
+      expect(await ask.locator("a").getAttribute("href")).toMatch(/chromewebstore\.google\.com|addons\.mozilla\.org|microsoftedge\.microsoft\.com/);
+      expect(await fifth.popup.evaluate(() => document.querySelector(".wrap")!.getBoundingClientRect().height)).toBeLessThanOrEqual(600);
+      await ask.locator("button", { hasText: "Not now" }).click();
+      expect(await ask.count()).toBe(0);
+      expect(await fifth.popup.evaluate(() => localStorage.getItem("fenshot:rating-ask-done"))).not.toBeNull();
+      // The footer line is back to its normal text, nothing shifted.
+      expect(await fifth.popup.locator(".footer").textContent()).toContain("runs on your device");
+    } finally {
+      await fifth.popup.close();
+      await fifth.page.close();
+    }
+    const sixth = await openPopupOn("chessgames.html");
+    try {
+      await sixth.popup.waitForSelector(POSITION_BOARD);
+      await sixth.popup.waitForTimeout(500);
+      expect(await sixth.popup.locator(".rating-ask").count()).toBe(0);
+    } finally {
+      await sixth.popup.close();
+      await sixth.page.close();
+    }
+  });
+});
+
 describe("popup end-to-end: starting positions", () => {
   it("study with a [FEN] start: numbering, board and URLs follow the position", async () => {
     const { page, popup } = await openPopupOn("study.html");

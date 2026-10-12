@@ -33,6 +33,7 @@ import {
   coachessPositionUrl,
   type FoundGame,
 } from "./pgn";
+import { detectStore, ratingAskPending, recordSuccessfulRead, settleRatingAsk, STORE_URLS } from "./rating";
 import ortMjsUrl from "./ort/ort-wasm-simd-threaded.mjs?url";
 import ortWasmUrl from "./ort/ort-wasm-simd-threaded.wasm?url";
 import modelUrl from "../../../packages/fenshot/model/chess-tiles-v2.onnx?url";
@@ -94,7 +95,14 @@ function render(...content: HTMLElement[]) {
   const brand = el("div", "brand");
   brand.append(el("span", "name", "fenshot"), el("span", "tag", "screenshot in, FEN out"));
   const footer = el("div", "footer");
-  footer.append("runs on your device \u00b7 ", link("https://github.com/scoriiu/fenshot", "", "open source"));
+  if (lastResult && ratingAskPending(window.localStorage)) {
+    // The one-time rating ask takes the footer line (same height, no
+    // new row: the popup is capped at 600px and the two-card layout
+    // sits a few px under it). Only on a result screen.
+    footer.append(ratingAskEl(footer));
+  } else {
+    footer.append("runs on your device \u00b7 ", link("https://github.com/scoriiu/fenshot", "", "open source"));
+  }
   if (document.body.classList.contains("two")) {
     // Wide layout: the footer line fits in the brand row, which buys
     // the height for a source line under each card title.
@@ -413,6 +421,7 @@ function boardEl(placement: string, flipped: boolean): HTMLElement {
 }
 
 function renderResult(state: ResultState) {
+  if (lastResult !== state && state.scan.reliable) recordSuccessfulRead(window.localStorage);
   lastResult = state;
   refreshScreen = () => renderResult(state);
   document.body.classList.remove("wide");
@@ -480,13 +489,22 @@ function renderResult(state: ResultState) {
   renderScreen(content, state.origin, warning);
 }
 
-/**
- * In-popup area selection over the already-captured page screenshot.
- * The screenshot is shown scaled; the drag rectangle is mapped back
- * to full-resolution coordinates before cropping, so the recognizer
- * always sees native pixels. No new permissions, no content scripts,
- * and no popup-blur problem because everything stays in the popup.
- */
+/** One line, once, in the footer: "Useful? A rating helps other players find it." See rating.ts. */
+function ratingAskEl(footer: HTMLElement): HTMLElement {
+  const row = el("span", "rating-ask");
+  const restore = () => {
+    settleRatingAsk(window.localStorage);
+    footer.replaceChildren("runs on your device \u00b7 ", link("https://github.com/scoriiu/fenshot", "", "open source"));
+  };
+  row.append(el("span", "", "Useful? "));
+  const yes = link(STORE_URLS[detectStore(navigator.userAgent)], "linkish strong", "Rate it");
+  yes.addEventListener("click", restore);
+  const no = el("button", "linkish", "Not now");
+  no.addEventListener("click", restore);
+  row.append(yes, " \u00b7 ", no);
+  return row;
+}
+
 function renderCrop() {
   const bitmap = pageBitmap;
   if (!bitmap) return;
