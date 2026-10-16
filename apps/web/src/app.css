@@ -4,7 +4,7 @@
   --card: #131a23;
   --border: #263242;
   --text: #cbd5e1;
-  --muted: #64748b;
+  --muted: #7a8da9; /* was #64748b: 4.0:1 on --bg, fails WCAG AA; now 5.6:1 */
   --accent: #f59e0b;
   --accent-soft: rgba(245, 158, 11, 0.12);
   --rose: #fb7185;
@@ -99,6 +99,9 @@ body {
   display: block;
   width: 100%;
   height: auto;
+  /* Reserve the box before the poster loads (1748x1080 video, 960x594
+     poster: same ratio), or the panel below it jumps (CLS). */
+  aspect-ratio: 1748 / 1080;
 }
 
 .ext-panel-body {
