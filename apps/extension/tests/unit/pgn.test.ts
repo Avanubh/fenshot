@@ -253,7 +253,7 @@ describe("URL builders (Coachess contract v1)", () => {
 
   it("matches the worked example agreed with Coachess byte for byte", () => {
     expect(coachessGameUrl(kasparov)).toBe(
-      "https://coachess.app/coach/position?fen=rnbqkbnr%2Fpppppppp%2F8%2F8%2F8%2F8%2FPPPPPPPP%2FRNBQKBNR%20w%20KQkq%20-%200%201&moves=e4%2Cc5%2CNf3%2Ce6%2Cd4%2Ccxd4%2CNxd4%2CNc6&white=Kasparov&black=Karpov&date=1985.10.15&result=1%2F2-1%2F2&utm_source=fenshot&utm_medium=extension&utm_campaign=game-import",
+      "https://kibitzo.com/coach/position?fen=rnbqkbnr%2Fpppppppp%2F8%2F8%2F8%2F8%2FPPPPPPPP%2FRNBQKBNR%20w%20KQkq%20-%200%201&moves=e4%2Cc5%2CNf3%2Ce6%2Cd4%2Ccxd4%2CNxd4%2CNc6&white=Kasparov&black=Karpov&date=1985.10.15&result=1%2F2-1%2F2&utm_source=fenshot&utm_medium=extension&utm_campaign=game-import",
     );
   });
 
@@ -284,7 +284,7 @@ describe("URL builders (Coachess contract v1)", () => {
 
   it("position handoff keeps the original shape plus UTM", () => {
     expect(coachessPositionUrl("8/8/8/8/8/8/8/K6k w - - 0 1", true)).toBe(
-      "https://coachess.app/coach/position?fen=8%2F8%2F8%2F8%2F8%2F8%2F8%2FK6k%20w%20-%20-%200%201&pov=black&utm_source=fenshot&utm_medium=extension&utm_campaign=position",
+      "https://kibitzo.com/coach/position?fen=8%2F8%2F8%2F8%2F8%2F8%2F8%2FK6k%20w%20-%20-%200%201&pov=black&utm_source=fenshot&utm_medium=extension&utm_campaign=position",
     );
     expect(coachessPositionUrl("8/8/8/8/8/8/8/K6k w - - 0 1", false)).not.toContain("pov=");
   });

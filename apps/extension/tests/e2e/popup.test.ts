@@ -105,7 +105,7 @@ async function openPopupOn(fixture: string): Promise<{ page: Page; popup: Page }
 }
 
 describe("popup end-to-end", () => {
-  it("chessgames-style page: position and game, Coachess primary, contract URL", async () => {
+  it("chessgames-style page: position and game, Kibitzo primary, contract URL", async () => {
     const { page, popup } = await openPopupOn("chessgames.html");
     try {
       // Board read from the screenshot (the fixture embeds a lichess screenshot).
@@ -113,9 +113,9 @@ describe("popup end-to-end", () => {
       // Both cards share the button layout; scope to the position card.
       const position = popup.locator(".card:not(.games)");
       const primary = position.locator(".actions .btn.primary");
-      await expect.poll(() => primary.textContent()).toBe("Analyze on Coachess");
+      await expect.poll(() => primary.textContent()).toBe("Analyze on Kibitzo");
       const posHref = (await primary.getAttribute("href"))!;
-      expect(posHref).toMatch(/^https:\/\/coachess\.app\/coach\/position\?fen=/);
+      expect(posHref).toMatch(/^https:\/\/kibitzo\.com\/coach\/position\?fen=/);
       expect(posHref).toContain("utm_campaign=position");
       await expect.poll(() => position.locator(".actions .btn:not(.primary)").first().textContent()).toBe("Lichess");
       expect(await position.locator(".caption.fen").textContent()).toMatch(/^r1bqk1nr\//);
@@ -165,10 +165,10 @@ describe("popup end-to-end", () => {
       expect(await popup.locator(".move-counter .san.active").textContent()).toBe("Be7#");
 
       const game = popup.locator(".game-actions a").first();
-      expect(await game.textContent()).toBe("Analyze on Coachess");
+      expect(await game.textContent()).toBe("Analyze on Kibitzo");
       expect(await game.getAttribute("class")).toContain("primary");
       const href = new URL((await game.getAttribute("href"))!);
-      expect(href.origin + href.pathname).toBe("https://coachess.app/coach/position");
+      expect(href.origin + href.pathname).toBe("https://kibitzo.com/coach/position");
       expect(href.searchParams.get("fen")).toBe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
       expect(href.searchParams.get("moves")!.split(",")).toHaveLength(45);
       expect(href.searchParams.get("result")).toBe("1-0");
@@ -183,7 +183,7 @@ describe("popup end-to-end", () => {
     }
   });
 
-  it("lichess-style page: headers reach the label and the Coachess URL", async () => {
+  it("lichess-style page: headers reach the label and the Kibitzo URL", async () => {
     const { page, popup } = await openPopupOn("lichess.html");
     try {
       await popup.waitForSelector(".games");

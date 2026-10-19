@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "fenshot: chess board to FEN, one click",
   "homepage_url": "https://fenshot.com/",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Chess screenshot to FEN in one click: reads the board on any page, and whole games from move lists. Runs entirely on your device.",
   "permissions": [
     "activeTab",

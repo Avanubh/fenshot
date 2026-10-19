@@ -26,14 +26,14 @@ The extension screenshots the visible tab, reads the board with a neural
 network that runs entirely inside your browser, and shows you the
 position. From there:
 
-- Analyze on Coachess, one click to coached analysis
+- Analyze on Kibitzo, one click to coached analysis
 - Open on Lichess
 - Copy the FEN to use anywhere
 
 Whole games too. On a page that shows a game as a move list, such as
 chessgames.com, lichess, a chess.com article or a blog, fenshot finds
 it, checks that every move is legal, and shows it on a small board you
-can step through. One click opens the full game on Coachess or Lichess,
+can step through. One click opens the full game on Kibitzo or Lichess,
 or copies the PGN. Several games on one page? Page through them.
 
 Privacy, for real:
@@ -47,7 +47,7 @@ Works with lichess and chess.com themes, book diagrams, and most piece
 sets. When a position is hard to read, fenshot says so instead of
 pretending, and routes you to an editor to fix the squares.
 
-Built from the position-import engine of coachess.app.
+Built from the position-import engine of kibitzo.com (formerly kibitzo.com).
 
 ## Category
 
@@ -85,8 +85,8 @@ opens it for analysis.
 Collects no data of any kind. All processing is local. Check "does not
 collect or use data".
 
-Note for reviewers who read link URLs: the "Coachess" buttons open
-coachess.app with utm_source=fenshot&utm_medium=extension in the URL.
+Note for reviewers who read link URLs: the "Kibitzo" buttons open
+kibitzo.com with utm_source=fenshot&utm_medium=extension in the URL.
 That is a static tag identifying the extension as the referrer, added
 only to links the user clicks; it carries no identifier and no data
 about the user or the page.

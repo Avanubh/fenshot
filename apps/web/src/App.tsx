@@ -363,11 +363,11 @@ export default function App() {
                 </a>
                 <a
                   className="btn btn-primary"
-                  href={`https://coachess.app/coach/position?fen=${encodeURIComponent(fen ?? "")}${result?.flipped ? "&pov=black" : ""}&ref=fenshot-web`}
+                  href={`https://kibitzo.com/coach/position?fen=${encodeURIComponent(fen ?? "")}${result?.flipped ? "&pov=black" : ""}&ref=fenshot-web`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Analyze on Coachess
+                  Analyze on Kibitzo
                 </a>
               </div>
             </div>
@@ -377,8 +377,8 @@ export default function App() {
 
       <footer className="footer">
         MIT open source · built from the position import of{" "}
-        <a href="https://coachess.app?ref=fenshot-web" target="_blank" rel="noreferrer">
-          coachess.app
+        <a href="https://kibitzo.com?ref=fenshot-web" target="_blank" rel="noreferrer">
+          kibitzo.com
         </a>
       </footer>
     </div>

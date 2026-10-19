@@ -302,7 +302,7 @@ function gamesEl(): HTMLElement | null {
     // Same button layout as the position card: primary across, two below.
     const actions = el("div", "actions game-actions");
     actions.append(
-      link(coachessGameUrl(game, povBlack), "btn primary", "Analyze on Coachess"),
+      link(coachessGameUrl(game, povBlack), "btn primary", "Analyze on Kibitzo"),
       link(lichessGameUrl(game), "btn", "Lichess"),
     );
     const copy = el("button", "btn", "Copy PGN");
@@ -461,13 +461,13 @@ function renderResult(state: ResultState) {
   fenLine.title = fen;
   content.push(fenLine);
 
-  // Coachess is the primary destination. An illegal read still goes to
+  // Kibitzo (formerly Coachess) is the primary destination. An illegal read still goes to
   // the Lichess editor first, since that is where squares get fixed.
   const actions = el("div", "actions");
   if (legalityWarning) {
-    actions.append(link(analysisUrl, "btn primary", "Fix in Lichess editor"), link(coachessUrl, "btn", "Coachess"));
+    actions.append(link(analysisUrl, "btn primary", "Fix in Lichess editor"), link(coachessUrl, "btn", "Kibitzo"));
   } else {
-    actions.append(link(coachessUrl, "btn primary", "Analyze on Coachess"), link(analysisUrl, "btn", "Lichess"));
+    actions.append(link(coachessUrl, "btn primary", "Analyze on Kibitzo"), link(analysisUrl, "btn", "Lichess"));
   }
   const copyBtn = el("button", "btn", "Copy FEN");
   copyBtn.addEventListener("click", async () => {

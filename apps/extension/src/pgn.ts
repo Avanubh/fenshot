@@ -597,7 +597,7 @@ export function lichessGameUrl(game: FoundGame): string {
  * real games take).
  */
 export const COACHESS_CONTRACT_VERSION = 1;
-const COACHESS_POSITION = "https://coachess.app/coach/position";
+const COACHESS_POSITION = "https://kibitzo.com/coach/position";
 const MAX_URL = 2000;
 const RESULT_VALUES = new Set(["1-0", "0-1", "1/2-1/2"]);
 

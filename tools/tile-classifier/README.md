@@ -76,5 +76,5 @@ train/serve skew.
    bump to `chess-tiles-v3.onnx` and update `modelUrl` consumers).
 3. `npm test` (the golden suite runs the model end to end) and flip
    manifest expectations that the new model upgrades.
-4. Publish a new package version. Downstream apps (coachess) pick the
+4. Publish a new package version. Downstream apps (kibitzo) pick the
    model up through their prebuild copy from `node_modules`.
