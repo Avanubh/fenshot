@@ -19,35 +19,28 @@ Chess screenshot to FEN in one click: reads the board on any page, and whole gam
 New: whole games. On chessgames.com, Lichess, a chess.com article or a
 blog, one click reads the full game and opens it for review.
 
-See a chess position anywhere, on lichess, chess.com, a YouTube video, a
-book PDF, a blog post, and want to analyze it? Click the fenshot icon.
+Turn any chessboard you see into a position you can analyze. One click, on any page.
 
-The extension screenshots the visible tab, reads the board with a neural
-network that runs entirely inside your browser, and shows you the
-position. From there:
+Watching a YouTube video, reading a book PDF, scrolling a blog or a chess.com article? Click the fenshot icon. It reads the board on your screen and gives you the position in about a second.
 
-- Analyze on Kibitzo, one click to coached analysis
-- Open on Lichess
-- Copy the FEN to use anywhere
+WHAT YOU GET
+• Analyze on Kibitzo: the position opens with a coach that explains it in plain words
+• Open on Lichess: straight into the analysis board
+• Copy FEN: paste it anywhere
 
-Whole games too. On a page that shows a game as a move list, such as
-chessgames.com, lichess, a chess.com article or a blog, fenshot finds
-it, checks that every move is legal, and shows it on a small board you
-can step through. One click opens the full game on Kibitzo or Lichess,
-or copies the PGN. Several games on one page? Page through them.
+WHOLE GAMES, NOT JUST POSITIONS
+When a page shows a game as a move list (chessgames.com, Lichess, chess.com articles, blogs), fenshot finds it, checks that every move is legal, and lets you step through it on a small board. One click opens the full game on Kibitzo or Lichess, or copies the PGN. Several games on one page? Page through them.
 
-Privacy, for real:
-- The screenshot and the page text are read only when you click the icon
-  (activeTab permission), and only from that tab
-- Recognition runs 100% on your device, nothing leaves your browser
-- No account, no analytics, no tracking, no network requests
-- Fully open source (MIT): github.com/scoriiu/fenshot
+PRIVATE BY DESIGN
+• Reads the page only when you click the icon, and only that tab
+• The neural network runs 100% on your device. Nothing is uploaded
+• No account, no analytics, no tracking
+• Open source (MIT): github.com/scoriiu/fenshot
 
-Works with lichess and chess.com themes, book diagrams, and most piece
-sets. When a position is hard to read, fenshot says so instead of
-pretending, and routes you to an editor to fix the squares.
+HONEST WHEN IT IS UNSURE
+Works with Lichess and chess.com themes, book diagrams and most piece sets. When a board is hard to read, fenshot tells you instead of guessing, and opens an editor so you can fix the squares.
 
-Built from the position-import engine of kibitzo.com (formerly kibitzo.com).
+Made by the team behind Kibitzo (kibitzo.com), from the same engine that imports positions there.
 
 ## Category
 
