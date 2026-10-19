@@ -21,7 +21,7 @@ blog, one click reads the full game and opens it for review.
 
 Turn any chessboard you see into a position you can analyze. One click, on any page.
 
-Watching a YouTube video, reading a book PDF, scrolling a blog or a chess.com article? Click the fenshot icon. It reads the board on your screen and gives you the position in about a second.
+Watching a YouTube video, reading a book PDF, scrolling a blog or a chess.com article? Click the fenshot icon. It reads the board on your screen and gives you the position.
 
 WHAT YOU GET
 • Analyze on Kibitzo: the position opens with a coach that explains it in plain words
