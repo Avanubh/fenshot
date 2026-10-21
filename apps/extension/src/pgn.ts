@@ -59,7 +59,10 @@ export function collectPageText(): string[] {
   // same task: the page is never painted with it.
   const ICON = /\b(king|queen|rook|bishop|knight)-(?:white|black)\b/;
   const LETTER: Record<string, string> = { king: "K", queen: "Q", rook: "R", bishop: "B", knight: "N" };
+  // chess.com prints a space between the icon and the square ("<icon> h5"),
+  // so the space after the icon is lifted for the read too.
   const added: Text[] = [];
+  const trimmed: [Text, string][] = [];
   for (const el of document.querySelectorAll("[data-figurine], .icon-font-chess")) {
     if ((el.textContent ?? "").trim()) continue;
     const attr = el.getAttribute("data-figurine") ?? "";
@@ -68,11 +71,17 @@ export function collectPageText(): string[] {
     const t = document.createTextNode(letter);
     el.appendChild(t);
     added.push(t);
+    const next = el.nextSibling;
+    if (next instanceof Text && /^\s/.test(next.data)) {
+      trimmed.push([next, next.data]);
+      next.data = next.data.trimStart();
+    }
   }
   try {
     push(document.body?.innerText);
   } finally {
     for (const t of added) t.remove();
+    for (const [node, data] of trimmed) node.data = data;
   }
   return out;
 }
