@@ -53,6 +53,21 @@ describe("collectPageText + findGames in a real browser", () => {
     expect(games[0].label).toBe("DrNykterstein \u2013 Hikaru, 2023 (8 moves)");
   });
 
+  it("chess.com with figurine notation: the piece is an icon (not text), still read as SAN; the page is left untouched", async () => {
+    const page = await browser.newPage();
+    try {
+      await page.goto(site.fixture("chesscom-figurine.html"));
+      const before = await page.evaluate(() => document.body.innerHTML);
+      const texts = await page.evaluate(collectPageText);
+      expect(await page.evaluate(() => document.body.innerHTML)).toBe(before);
+      const games = findGames(texts);
+      expect(games).toHaveLength(1);
+      expect(games[0].moves).toEqual("e4 e5 Qh5 Nh6 Bc4 Bc5 Qxe5+ Be7 Qxg7 Bf6 Qxh6 Rg8 Qxh7 Nc6 Qxf7#".split(" "));
+    } finally {
+      await page.close();
+    }
+  });
+
   it("article with two games and prose numbering: both games, longest first, prose ignored", async () => {
     const { games } = await gamesOn("article.html");
     expect(games.map((g) => g.moves.length)).toEqual([13, 7]);

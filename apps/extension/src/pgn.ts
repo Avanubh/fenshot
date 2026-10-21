@@ -53,7 +53,27 @@ export function collectPageText(): string[] {
   for (const n of document.querySelectorAll("[data-pgn]")) push(n.getAttribute("data-pgn"));
   for (const n of document.querySelectorAll("pre, code")) push(n.textContent);
   // Then the rendered page text, which covers move tables and lists.
-  push(document.body?.innerText);
+  // Figurine notation (chess.com's piece-icon setting) draws the piece
+  // with an icon font, so the text reads "h5" for Qh5 and no game parses.
+  // Write each icon's letter in for the read and take it out again in the
+  // same task: the page is never painted with it.
+  const ICON = /\b(king|queen|rook|bishop|knight)-(?:white|black)\b/;
+  const LETTER: Record<string, string> = { king: "K", queen: "Q", rook: "R", bishop: "B", knight: "N" };
+  const added: Text[] = [];
+  for (const el of document.querySelectorAll("[data-figurine], .icon-font-chess")) {
+    if ((el.textContent ?? "").trim()) continue;
+    const attr = el.getAttribute("data-figurine") ?? "";
+    const letter = /^[KQRBN]$/.test(attr) ? attr : LETTER[ICON.exec(el.className.toString())?.[1] ?? ""];
+    if (!letter) continue;
+    const t = document.createTextNode(letter);
+    el.appendChild(t);
+    added.push(t);
+  }
+  try {
+    push(document.body?.innerText);
+  } finally {
+    for (const t of added) t.remove();
+  }
   return out;
 }
 
@@ -68,7 +88,9 @@ const NOISE_AT = /^(?:\s|[!?]|\$\d+|e\.p\.|\[\d+\]|[\u00b1\u2213\u2a72\u2a71\u22
 const RESULT_ANY = /(?<!")(1-0|0-1|1\/2-1\/2|\u00bd-\u00bd|\*)(?![\w-"])/g;
 // A new game starts here: the forward search for a move number must
 // not cross it, or an unfinished game would splice onto the next one.
-const BOUNDARY = /(?<![0-9a-h])1\.(?!\.)|\[Event\s/g;
+// "1." before a digit is a decimal (chess.com's per-move clock "1.5s"),
+// never move one.
+const BOUNDARY = /(?<![0-9a-h])1\.(?![.\d])|\[Event\s/g;
 const TAG = /\[(\w+)\s+"([^"]*)"\]/g;
 
 const MIN_PLIES = 6;
