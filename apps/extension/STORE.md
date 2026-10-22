@@ -91,6 +91,21 @@ about the user or the page.
   `git archive` (see "Packaging" below); the README covers the build.
 - data_collection_permissions in the manifest stays `required: ["none"]`.
 
+## Release notes (0.4.6, covers 0.4.5)
+
+Chess.com games now import when your move list shows piece icons
+(figurine notation). Before, the extension found no game on those pages.
+A move time such as "1.5s" no longer cuts a game in two.
+"Analyze on Coachess" is now "Analyze on Kibitzo" (the site's new name).
+No new permissions. Nothing leaves your device until you choose to
+analyze a game.
+
+Notes to reviewer (AMO): no permission or data-handling changes since
+0.4.4. Changes: src/pgn.ts (move-list reading: figurine icons on
+chess.com, decimal clock values) and the link and label for the renamed
+analysis site (kibitzo.com). Build steps are unchanged; see the README
+in the source zip.
+
 ## Release notes (0.4.4)
 
 A quiet, one-time ask for a store rating after your 5th successful read.
