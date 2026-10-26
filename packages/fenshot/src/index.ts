@@ -9,6 +9,8 @@ export {
 } from "./recognize";
 export {
   findChessboardCorners,
+  findEnergyBoundingBox,
+  generateBoardCandidates,
   snapCorners,
   type BoardCorners,
   type GrayImage,

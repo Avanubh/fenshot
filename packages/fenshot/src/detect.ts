@@ -135,7 +135,8 @@ function getAllSequences(seq: number[]): number[][] {
             bestIdx = k;
           }
         }
-        if (bestDist >= ERR_PX) break;
+        const maxTol = Math.max(5, Math.min(22, Math.round(d * 0.12)));
+        if (bestDist >= maxTol) break;
         n = seq[bestIdx];
         s.push(n);
         n = s[s.length - 1] + d;
@@ -464,4 +465,143 @@ export function findChessboardCorners(img: GrayImage): BoardCorners | null {
     }
   }
   return best ? repairParity(img, best) : null;
+}
+
+/**
+ * 2D Gradient Energy Auto-Cropper
+ * Detects the bounding box with highest gradient energy concentration,
+ * providing a reliable fallback when 1D Hough sequences are disrupted.
+ */
+export function findEnergyBoundingBox(gray: GrayImage): BoardCorners | null {
+  const { data, width, height } = gray;
+  const rowEnergy = new Float64Array(height);
+  const colEnergy = new Float64Array(width);
+
+  for (let y = 1; y < height - 1; y++) {
+    const row = y * width;
+    for (let x = 1; x < width - 1; x++) {
+      const gx = Math.abs(data[row + x + 1] - data[row + x - 1]);
+      const gy = Math.abs(data[row + width + x] - data[row - width + x]);
+      const e = gx * gy;
+      rowEnergy[y] += e;
+      colEnergy[x] += e;
+    }
+  }
+
+  let maxR = 0;
+  for (let y = 0; y < height; y++) if (rowEnergy[y] > maxR) maxR = rowEnergy[y];
+  let maxC = 0;
+  for (let x = 0; x < width; x++) if (colEnergy[x] > maxC) maxC = colEnergy[x];
+
+  if (maxR <= 0 || maxC <= 0) return null;
+
+  let r0 = 0, r1 = height - 1;
+  while (r0 < height && rowEnergy[r0] < maxR * 0.12) r0++;
+  while (r1 > 0 && rowEnergy[r1] < maxR * 0.12) r1--;
+
+  let c0 = 0, c1 = width - 1;
+  while (c0 < width && colEnergy[c0] < maxC * 0.12) c0++;
+  while (c1 > 0 && colEnergy[c1] < maxC * 0.12) c1--;
+
+  const bw = c1 - c0;
+  const bh = r1 - r0;
+  if (bw < 40 || bh < 40) return null;
+
+  const side = Math.max(bw, bh);
+  const cx = (c0 + c1) / 2;
+  const cy = (r0 + r1) / 2;
+  return {
+    x0: Math.max(0, Math.round(cx - side / 2)),
+    y0: Math.max(0, Math.round(cy - side / 2)),
+    x1: Math.min(width, Math.round(cx + side / 2)),
+    y1: Math.min(height, Math.round(cy + side / 2)),
+  };
+}
+
+/**
+ * Multi-Hypothesis Candidate Generator
+ * Generates square candidate bounding boxes from Hough lines, 2D gradient energy,
+ * aspect-ratio priors, and mobile UI heuristics.
+ */
+export function generateBoardCandidates(gray: GrayImage): BoardCorners[] {
+  const { width, height } = gray;
+  const candidates: BoardCorners[] = [];
+
+  function addCandidate(box: BoardCorners | null) {
+    if (!box) return;
+    const w = box.x1 - box.x0;
+    const h = box.y1 - box.y0;
+    if (w < 40 || h < 40) return;
+    const clamped: BoardCorners = {
+      x0: Math.max(0, box.x0),
+      y0: Math.max(0, box.y0),
+      x1: Math.min(width, box.x1),
+      y1: Math.min(height, box.y1),
+    };
+    const exists = candidates.some(
+      (c) =>
+        Math.abs(c.x0 - clamped.x0) < 6 &&
+        Math.abs(c.y0 - clamped.y0) < 6 &&
+        Math.abs(c.x1 - clamped.x1) < 6 &&
+        Math.abs(c.y1 - clamped.y1) < 6,
+    );
+    if (!exists) {
+      candidates.push(clamped);
+    }
+  }
+
+  // 1. Hough sequence candidate
+  try {
+    const hough = findChessboardCorners(gray);
+    if (hough) {
+      addCandidate(hough);
+      addCandidate(snapCorners(gray, hough));
+    }
+  } catch {}
+
+  // 2. 2D Gradient Energy Box
+  try {
+    const eBox = findEnergyBoundingBox(gray);
+    if (eBox) {
+      addCandidate(eBox);
+      addCandidate(snapCorners(gray, eBox));
+    }
+  } catch {}
+
+  // 3. Aspect-ratio based priors (for cropped or 1:1 square diagrams)
+  const aspect = width / height;
+  if (aspect >= 0.80 && aspect <= 1.25) {
+    addCandidate({ x0: 0, y0: 0, x1: width, y1: height });
+    addCandidate(snapCorners(gray, { x0: 0, y0: 0, x1: width, y1: height }));
+    for (const p of [0.02, 0.04, 0.06]) {
+      const ix = Math.round(width * p);
+      const iy = Math.round(height * p);
+      const inset: BoardCorners = { x0: ix, y0: iy, x1: width - ix, y1: height - iy };
+      addCandidate(inset);
+      addCandidate(snapCorners(gray, inset));
+    }
+  }
+
+  // 4. Vertical smartphone screen layouts (height > width * 1.1)
+  if (height > width * 1.1) {
+    const cy = Math.round((height - width) / 2);
+    addCandidate({ x0: 0, y0: cy, x1: width, y1: cy + width });
+    for (const offsetPct of [0.12, 0.18, 0.24, 0.30]) {
+      const topY = Math.round(height * offsetPct);
+      if (topY + width <= height) {
+        const mBox: BoardCorners = { x0: 0, y0: topY, x1: width, y1: topY + width };
+        addCandidate(mBox);
+        addCandidate(snapCorners(gray, mBox));
+      }
+    }
+  }
+
+  if (candidates.length === 0) {
+    const side = Math.min(width, height);
+    const cx = Math.round((width - side) / 2);
+    const cy = Math.round((height - side) / 2);
+    addCandidate({ x0: cx, y0: cy, x1: cx + side, y1: cy + side });
+  }
+
+  return candidates;
 }

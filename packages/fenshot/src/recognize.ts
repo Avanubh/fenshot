@@ -21,7 +21,13 @@
  * an editor with a warning rather than trusting the result.
  */
 
-import { findChessboardCorners, snapCorners, type BoardCorners, type GrayImage } from "./detect";
+import {
+  findChessboardCorners,
+  snapCorners,
+  generateBoardCandidates,
+  type BoardCorners,
+  type GrayImage,
+} from "./detect";
 import { extractTiles, rgbaToGray } from "./tiles";
 import { probsToPlacement, type RecognitionResult } from "./fen";
 
@@ -166,19 +172,57 @@ export async function recognizeGray(
   gray: GrayImage,
   classify: TileClassifier,
 ): Promise<BoardScanResult | null> {
-  let working = gray;
-  let fallback: BoardScanResult | null = null;
-  for (let pass = 0; pass < MAX_SCAN_PASSES; pass++) {
-    const result = await scanOnce(working, classify);
-    if (!result) break;
-    if (result.plausible) return result;
-    const fallbackIsEmpty = !fallback || fallback.placement === EMPTY_PLACEMENT;
-    if (fallbackIsEmpty && (!fallback || result.placement !== EMPTY_PLACEMENT)) {
-      fallback = result;
-    }
-    working = maskRegion(working, result.corners);
+  const candidates = generateBoardCandidates(gray);
+  let bestResult: BoardScanResult | null = null;
+  let bestScore = -Infinity;
+
+  for (const c of candidates) {
+    try {
+      const read = await classify(c);
+      const plausible = isPlausiblePosition(read.placement);
+
+      // Objective Function Matrix:
+      // Heavy weight for chess rule plausibility (1 white king, 1 black king)
+      // + Mean confidence + Worst-tile confidence
+      const score =
+        (plausible ? 200 : 0) +
+        read.meanConfidence * 20 +
+        read.minConfidence * 10;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestResult = {
+          ...read,
+          corners: c,
+          plausible,
+          reliable: read.minConfidence >= CONFIDENCE_FLOOR && plausible,
+        };
+      }
+
+      if (plausible && read.minConfidence >= 0.85 && read.meanConfidence >= 0.95) {
+        break;
+      }
+    } catch {}
   }
-  return fallback;
+
+  // Fallback to iterative masked passes if no candidates were plausible
+  if (!bestResult || !bestResult.plausible) {
+    let working = gray;
+    let fallback = bestResult;
+    for (let pass = 0; pass < MAX_SCAN_PASSES; pass++) {
+      const result = await scanOnce(working, classify);
+      if (!result) break;
+      if (result.plausible) return result;
+      const fallbackIsEmpty = !fallback || fallback.placement === EMPTY_PLACEMENT;
+      if (fallbackIsEmpty && (!fallback || result.placement !== EMPTY_PLACEMENT)) {
+        fallback = result;
+      }
+      working = maskRegion(working, result.corners);
+    }
+    return fallback;
+  }
+
+  return bestResult;
 }
 
 export function createRecognizer(options: RecognizerOptions): Recognizer {
