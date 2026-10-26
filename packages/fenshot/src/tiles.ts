@@ -2,14 +2,11 @@
  * Tile extraction for the chess-tiles CNN. Port of getChessTilesGray
  * from Elucidation/tensorflow_chessbot (MIT).
  *
- * Crops the board (edge-padding out-of-bounds corners), bilinear
- * resizes to 256x256, normalizes to [0,1], and emits the 64 tiles in
- * the model's input order: tile k = rank*8 + file with A1 at the
- * image's bottom-left, each tile a row-major 32x32 block. Output is
- * a Float32Array of shape [64, 1024].
+ * Enhanced with Paul Heckbert (1989) Projective Homography for
+ * perspective quadrilateral rectification.
  */
 
-import type { BoardCorners, GrayImage } from "./detect";
+import { type BoardCorners, type GrayImage, createHomographyMap } from "./detect";
 
 const BOARD_PX = 256;
 const TILE_PX = 32;
@@ -22,26 +19,37 @@ function sampleClamped(img: GrayImage, x: number, y: number): number {
   return img.data[cy * img.width + cx];
 }
 
-/** Bilinear resize of the corners crop to 256x256, values in [0,1]. */
+/** Bilinear resize of the corners crop to 256x256 through Homography, values in [0,1]. */
 export function extractBoardImage(img: GrayImage, corners: BoardCorners): Float32Array {
-  const { x0, y0, x1, y1 } = corners;
-  const cw = x1 - x0;
-  const ch = y1 - y0;
+  let mapPoint: (u: number, v: number) => { x: number; y: number };
+
+  if (corners && corners.quad && corners.quad.length === 4) {
+    mapPoint = createHomographyMap(corners.quad);
+  } else {
+    const { x0, y0, x1, y1 } = corners;
+    const cw = x1 - x0;
+    const ch = y1 - y0;
+    mapPoint = (u, v) => ({ x: x0 + u * cw, y: y0 + v * ch });
+  }
+
   const out = new Float32Array(BOARD_PX * BOARD_PX);
   for (let ty = 0; ty < BOARD_PX; ty++) {
-    const sy = y0 + ((ty + 0.5) * ch) / BOARD_PX - 0.5;
-    const fy = Math.floor(sy);
-    const wy = sy - fy;
+    const v = (ty + 0.5) / BOARD_PX;
     for (let tx = 0; tx < BOARD_PX; tx++) {
-      const sx = x0 + ((tx + 0.5) * cw) / BOARD_PX - 0.5;
+      const u = (tx + 0.5) / BOARD_PX;
+      const pt = mapPoint(u, v);
+      const sx = pt.x - 0.5;
+      const sy = pt.y - 0.5;
       const fx = Math.floor(sx);
+      const fy = Math.floor(sy);
       const wx = sx - fx;
-      const v =
+      const wy = sy - fy;
+      const val =
         sampleClamped(img, fx, fy) * (1 - wx) * (1 - wy) +
         sampleClamped(img, fx + 1, fy) * wx * (1 - wy) +
         sampleClamped(img, fx, fy + 1) * (1 - wx) * wy +
         sampleClamped(img, fx + 1, fy + 1) * wx * wy;
-      out[ty * BOARD_PX + tx] = v / 255;
+      out[ty * BOARD_PX + tx] = val / 255;
     }
   }
   return out;

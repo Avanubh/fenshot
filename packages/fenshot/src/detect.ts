@@ -23,11 +23,17 @@
  * sequence search did not already reject.
  */
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface BoardCorners {
   x0: number;
   y0: number;
   x1: number;
   y1: number;
+  quad?: [Point, Point, Point, Point];
 }
 
 export interface GrayImage {
@@ -135,8 +141,7 @@ function getAllSequences(seq: number[]): number[][] {
             bestIdx = k;
           }
         }
-        const maxTol = Math.max(5, Math.min(22, Math.round(d * 0.12)));
-        if (bestDist >= maxTol) break;
+        if (bestDist >= ERR_PX) break;
         n = seq[bestIdx];
         s.push(n);
         n = s[s.length - 1] + d;
@@ -171,32 +176,97 @@ function median(arr: number[]): number {
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
+/**
+ * Paul Heckbert (1989) Closed-form Projective Homography Mapping
+ * Maps unit square [0, 1]^2 to an arbitrary 4-point quadrilateral (p0, p1, p2, p3).
+ */
+export function createHomographyMap(quad: [Point, Point, Point, Point]): (u: number, v: number) => Point {
+  const [p0, p1, p2, p3] = quad;
+  const dx1 = p1.x - p2.x;
+  const dx2 = p3.x - p2.x;
+  const sx = p0.x - p1.x + p2.x - p3.x;
+  const dy1 = p1.y - p2.y;
+  const dy2 = p3.y - p2.y;
+  const sy = p0.y - p1.y + p2.y - p3.y;
+
+  if (Math.abs(sx) < 1e-5 && Math.abs(sy) < 1e-5) {
+    const a = p1.x - p0.x;
+    const b = p3.x - p0.x;
+    const c = p0.x;
+    const d = p1.y - p0.y;
+    const e = p3.y - p0.y;
+    const f = p0.y;
+    return (u: number, v: number) => ({ x: a * u + b * v + c, y: d * u + e * v + f });
+  }
+
+  const denom = dx1 * dy2 - dy1 * dx2;
+  const safeDenom = Math.abs(denom) < 1e-7 ? 1e-7 : denom;
+  const g = (sx * dy2 - sy * dx2) / safeDenom;
+  const h = (dx1 * sy - dy1 * sx) / safeDenom;
+  const a = p1.x - p0.x + g * p1.x;
+  const b = p3.x - p0.x + h * p3.x;
+  const c = p0.x;
+  const d = p1.y - p0.y + g * p1.y;
+  const e = p3.y - p0.y + h * p3.y;
+  const f = p0.y;
+
+  return (u: number, v: number) => {
+    const w = g * u + h * v + 1;
+    const invW = Math.abs(w) < 1e-7 ? 1e7 : 1 / w;
+    return {
+      x: (a * u + b * v + c) * invW,
+      y: (d * u + e * v + f) * invW,
+    };
+  };
+}
+
 /** Crop (zero-padded out of bounds) + nearest resize to 64x64,
- *  correlate against ideal checkerboard kernel.
- *
- *  SIGNED, deliberately: the kernel's +1 cells are the crop's corner
- *  parity, and a chessboard's corner squares (a8/h1 side) are the
- *  LIGHT squares in either orientation, so a correctly aligned crop
- *  correlates positive. A crop misaligned by an odd number of tiles
- *  inverts the parity and goes negative, which is what lets the
- *  arbitration reject one-tile-shifted boxes that abs() used to score
- *  as high as the truth (found via the marble-theme web-eval case:
- *  sparse position, confident read, every piece one file off). */
-function checkerboardScore(img: GrayImage, x0: number, y0: number, x1: number, y1: number): number {
-  const w = x1 - x0;
-  const h = y1 - y0;
+ *  correlate against ideal checkerboard kernel. Supports quads. */
+export function checkerboardScore(
+  img: GrayImage,
+  cornersOrX0: BoardCorners | number,
+  y0?: number,
+  x1?: number,
+  y1?: number,
+): number {
+  if (typeof cornersOrX0 === "object" && cornersOrX0 !== null && cornersOrX0.quad && cornersOrX0.quad.length === 4) {
+    const mapPoint = createHomographyMap(cornersOrX0.quad);
+    let score = 0;
+    for (let ty = 0; ty < 64; ty++) {
+      const v = ty / 64;
+      for (let tx = 0; tx < 64; tx++) {
+        const u = tx / 64;
+        const pt = mapPoint(u, v);
+        const sx = Math.floor(pt.x);
+        const sy = Math.floor(pt.y);
+        let px = 0;
+        if (sx >= 0 && sx < img.width && sy >= 0 && sy < img.height) {
+          px = img.data[sy * img.width + sx];
+        }
+        const parity = (Math.floor(tx / 8) + Math.floor(ty / 8)) % 2 === 0 ? 1 : -1;
+        score += (parity * px) / 64;
+      }
+    }
+    return score;
+  }
+
+  const x0 = typeof cornersOrX0 === "object" ? cornersOrX0.x0 : cornersOrX0;
+  const ay0 = typeof cornersOrX0 === "object" ? cornersOrX0.y0 : (y0 ?? 0);
+  const ax1 = typeof cornersOrX0 === "object" ? cornersOrX0.x1 : (x1 ?? 0);
+  const ay1 = typeof cornersOrX0 === "object" ? cornersOrX0.y1 : (y1 ?? 0);
+
+  const w = ax1 - x0;
+  const h = ay1 - ay0;
   if (w <= 0 || h <= 0) return 0;
   let score = 0;
   for (let ty = 0; ty < 64; ty++) {
-    const sy = y0 + Math.floor((ty * h) / 64);
+    const sy = ay0 + Math.floor((ty * h) / 64);
     for (let tx = 0; tx < 64; tx++) {
       const sx = x0 + Math.floor((tx * w) / 64);
       let px = 0;
       if (sx >= 0 && sx < img.width && sy >= 0 && sy < img.height) {
         px = img.data[sy * img.width + sx];
       }
-      // kernel: +1 on (tile parity even), -1 odd, tiles are 8x8 px;
-      // normalized by sqrt(64*64) = 64 like np.linalg.norm of +/-1 grid.
       const parity = (Math.floor(tx / 8) + Math.floor(ty / 8)) % 2 === 0 ? 1 : -1;
       score += (parity * px) / 64;
     }
@@ -524,7 +594,20 @@ export function findEnergyBoundingBox(gray: GrayImage): BoardCorners | null {
  * aspect-ratio priors, and mobile UI heuristics.
  */
 export function generateBoardCandidates(gray: GrayImage): BoardCorners[] {
-  const { width, height } = gray;
+  const { width, height, data } = gray;
+
+  // Reject uniform or zero-contrast images immediately
+  let minVal = Infinity;
+  let maxVal = -Infinity;
+  for (let i = 0; i < data.length; i += 32) {
+    if (data[i] < minVal) minVal = data[i];
+    if (data[i] > maxVal) maxVal = data[i];
+    if (maxVal - minVal > 25) break;
+  }
+  if (maxVal - minVal <= 25) {
+    return [];
+  }
+
   const candidates: BoardCorners[] = [];
 
   function addCandidate(box: BoardCorners | null) {
@@ -537,16 +620,45 @@ export function generateBoardCandidates(gray: GrayImage): BoardCorners[] {
       y0: Math.max(0, box.y0),
       x1: Math.min(width, box.x1),
       y1: Math.min(height, box.y1),
+      quad: box.quad,
     };
     const exists = candidates.some(
       (c) =>
         Math.abs(c.x0 - clamped.x0) < 6 &&
         Math.abs(c.y0 - clamped.y0) < 6 &&
         Math.abs(c.x1 - clamped.x1) < 6 &&
-        Math.abs(c.y1 - clamped.y1) < 6,
+        Math.abs(c.y1 - clamped.y1) < 6 &&
+        ((!c.quad && !clamped.quad) || (c.quad && clamped.quad)),
     );
     if (!exists) {
       candidates.push(clamped);
+
+      // Perspective quads for desk view angle and camera tilt
+      if (!box.quad && w >= 120 && h >= 120) {
+        for (const delta of [0.04, 0.08, 0.14]) {
+          const dPx = Math.round(w * delta);
+          // 1. Desk tilt (top narrower than bottom)
+          candidates.push({
+            ...clamped,
+            quad: [
+              { x: clamped.x0 + dPx, y: clamped.y0 },
+              { x: clamped.x1 - dPx, y: clamped.y0 },
+              { x: clamped.x1, y: clamped.y1 },
+              { x: clamped.x0, y: clamped.y1 },
+            ],
+          });
+          // 2. Reverse tilt
+          candidates.push({
+            ...clamped,
+            quad: [
+              { x: clamped.x0, y: clamped.y0 },
+              { x: clamped.x1, y: clamped.y0 },
+              { x: clamped.x1 - dPx, y: clamped.y1 },
+              { x: clamped.x0 + dPx, y: clamped.y1 },
+            ],
+          });
+        }
+      }
     }
   }
 
