@@ -37,7 +37,7 @@ export interface RecognizerOptions {
 }
 
 export interface Recognizer {
-  recognize: (source: CanvasImageSource | Blob | File) => Promise<BoardScanResult | null>;
+  recognize: (source: CanvasImageSource | Blob | File, customCorners?: BoardCorners) => Promise<BoardScanResult | null>;
   warmUp: () => void;
 }
 
@@ -112,7 +112,25 @@ function maskRegion(gray: GrayImage, box: BoardCorners): GrayImage {
 export async function recognizeGray(
   gray: GrayImage,
   classify: TileClassifier,
+  customCorners?: BoardCorners,
 ): Promise<BoardScanResult | null> {
+  if (customCorners) {
+    try {
+      const read = await classify(customCorners);
+      const fide = evaluateFideLegality(read.placement);
+      return {
+        ...read,
+        corners: customCorners,
+        fideLegal: fide.legal,
+        fideScore: fide.score,
+        plausible: fide.legal || fide.score > 100,
+        reliable: read.minConfidence >= CONFIDENCE_FLOOR && fide.legal,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   // Pass 1: Standard iterative masked scan (finds distinct non-overlapping boards)
   let working = gray;
   let fallback: BoardScanResult | null = null;
@@ -220,7 +238,7 @@ export function createRecognizer(options: RecognizerOptions): Recognizer {
       void getSession().catch(() => undefined);
     },
 
-    async recognize(source) {
+    async recognize(source, customCorners) {
       const img =
         source instanceof File || source instanceof Blob ? await createImageBitmap(source) : source;
       const gray = imageToGray(img);
@@ -230,7 +248,7 @@ export function createRecognizer(options: RecognizerOptions): Recognizer {
         const tiles = extractTiles(gray, c);
         const out = await session.run({ tiles: new ort.Tensor("float32", tiles, [64, 1024]) });
         return probsToPlacement(out["probs"].data as Float32Array);
-      });
+      }, customCorners);
 
       if (!result) {
         throw new Error("No chessboard detected in this image.");
