@@ -1,12 +1,12 @@
-# fenshot
+# recordFen
 
 Screenshot in. FEN out. State-of-the-art chessboard recognition.
 
-[![CI](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml/badge.svg)](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/%40avanubh%2Ffenshot)](https://www.npmjs.com/package/@avanubh/fenshot)
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Avanubh/fenshot/blob/main/LICENSE)
+[![CI](https://github.com/Avanubh/recordFen/actions/workflows/ci.yml/badge.svg)](https://github.com/Avanubh/recordFen/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40avanubh%2Frecord-fen)](https://www.npmjs.com/package/@avanubh/record-fen)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Avanubh/recordFen/blob/main/LICENSE)
 
-Repository: **[github.com/Avanubh/fenshot](https://github.com/Avanubh/fenshot)**
+Repository: **[github.com/Avanubh/recordFen](https://github.com/Avanubh/recordFen)**
 
 Chessboard recognition that runs entirely on-device: finds the board in screenshots, mobile captures, photos, and book diagrams, rectifies perspective distortions with **Paul Heckbert Projective Homography**, evaluates against **FIDE chess legality rules**, and reads piece positions using an on-device ONNX CNN tile classifier.
 
@@ -14,7 +14,7 @@ Zero server dependencies, zero privacy leaks, runs in $<300\text{ms}$.
 
 ---
 
-## What's New in the 10/10 Vision Engine (v1.0.0)
+## What's New in recordFen 10/10 Vision Engine (v1.0.0)
 
 - **Paul Heckbert (1989) Projective Homography ($H \in \text{PGL}(3, \mathbb{R})$)**: Transforms angled camera shots and trapezoidal table tilts into perfectly rectified $256 \times 256$ top-down boards via exact closed-form algebraic equations.
 - **Cross-Tile Vertical Spillover Demarcation**: Eliminates false pawn detections caused by King crosses, Queen coronets, and Bishop miters projecting upward into the rank above.
@@ -27,12 +27,12 @@ Zero server dependencies, zero privacy leaks, runs in $<300\text{ms}$.
 ## Install
 
 ```bash
-npm install @avanubh/fenshot onnxruntime-web
+npm install @avanubh/record-fen onnxruntime-web
 ```
 
 Two static assets are required:
 
-1. **The model** (1.3 MB): copy `node_modules/@avanubh/fenshot/model/chess-tiles-v2.onnx` to your static directory (or serve via CDN).
+1. **The model** (1.3 MB): copy `node_modules/@avanubh/record-fen/model/chess-tiles-v2.onnx` to your static directory (or serve via CDN).
 2. **The onnxruntime wasm pair**: copy `ort-wasm-simd-threaded.mjs` and `ort-wasm-simd-threaded.wasm` from `node_modules/onnxruntime-web/dist/` to a static directory (e.g. `/ort/`).
 
 Both are lazy-loaded on the first scan.
@@ -42,7 +42,7 @@ Both are lazy-loaded on the first scan.
 ## Quickstart
 
 ```ts
-import { createRecognizer, resolveOrientation, placementToFen } from "@avanubh/fenshot";
+import { createRecognizer, resolveOrientation, placementToFen } from "@avanubh/record-fen";
 
 const recognizer = createRecognizer({
   modelUrl: "/models/chess-tiles-v2.onnx",
@@ -104,18 +104,8 @@ For custom processing pipelines (e.g., React Native WebView, Node with sharp, ca
 
 ---
 
-## Architecture & Algorithm
-
-1. **Multi-Hypothesis Localization**: Computes 1D Hough responses from Sobel gradients alongside 2D directional energy tensors. Generates both axis-aligned crops and 4-point perspective trapezoids.
-2. **Projective Homography Rectification**: Slices the board along true perspective projection lines, rectifying camera pitch and table angles into canonical squares.
-3. **Tile Classification**: Runs an optimized ONNX CNN (~330k parameters, 1.3 MB) classifying 64 squares across 13 classes (`1KQRBNPkqrbnp`).
-4. **Spatial Context & Spillover Filtering**: Cross-checks vertically adjacent squares to suppress piece overhang false positives.
-5. **FIDE Legality Arbitration**: Computes an objective Bayesian score evaluating piece distribution, contrast, and FIDE rules to select the highest-fidelity board candidate.
-
----
-
 ## Credits & License
 
 - Original baseline & concept inspired by [Elucidation/tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot) and [scoriiu/fenshot](https://github.com/scoriiu/fenshot).
 - Enhanced, re-architected, and maintained by **[Anubhav](https://github.com/Avanubh)**.
-- Licensed under the [MIT License](https://github.com/Avanubh/fenshot/blob/main/LICENSE).
+- Licensed under the [MIT License](https://github.com/Avanubh/recordFen/blob/main/LICENSE).

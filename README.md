@@ -1,14 +1,14 @@
-# fenshot
+# recordFen
 
 **Screenshot in. FEN out. State-of-the-art chessboard recognition.**
 
-[![CI](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml/badge.svg)](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/%40avanubh%2Ffenshot)](https://www.npmjs.com/package/@avanubh/fenshot)
+[![CI](https://github.com/Avanubh/recordFen/actions/workflows/ci.yml/badge.svg)](https://github.com/Avanubh/recordFen/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40avanubh%2Frecord-fen)](https://www.npmjs.com/package/@avanubh/record-fen)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Paste any chessboard screenshot, a chess.com game, a Lichess puzzle, a diagram from a chess book, a mobile camera photo, or a position from Reddit, and get the position as a valid FEN, entirely on your device. No account, no upload, zero server latency.
 
-Repository: **[github.com/Avanubh/fenshot](https://github.com/Avanubh/fenshot)**
+Repository: **[github.com/Avanubh/recordFen](https://github.com/Avanubh/recordFen)**
 
 ---
 
@@ -23,11 +23,11 @@ Repository: **[github.com/Avanubh/fenshot](https://github.com/Avanubh/fenshot)**
 
 ## How it works
 
-| Your screenshot | | What fenshot reads |
+| Your screenshot | | What recordFen reads |
 |:---:|:---:|:---:|
-| <img src="packages/fenshot/tests/fixtures/lichess-italian-black.png" width="360" alt="Lichess screenshot from Black's point of view" /> | **→** | `r1bqk1nr/pppp1ppp/2n5/`<br/>`2b1p3/2B1P3/5N2/`<br/>`PPPP1PPP/RNBQK2R` |
+| <img src="packages/record-fen/tests/fixtures/lichess-italian-black.png" width="360" alt="Lichess screenshot from Black's point of view" /> | **→** | `r1bqk1nr/pppp1ppp/2n5/`<br/>`2b1p3/2B1P3/5N2/`<br/>`PPPP1PPP/RNBQK2R` |
 
-The screenshot above is from **Black's point of view**; fenshot detects that from pawn-advance direction and flips the read automatically.
+The screenshot above is from **Black's point of view**; recordFen detects that from pawn-advance direction and flips the read automatically.
 
 Under the hood:
 
@@ -42,11 +42,11 @@ Under the hood:
 ## Use it as a library
 
 ```bash
-npm install @avanubh/fenshot onnxruntime-web
+npm install @avanubh/record-fen onnxruntime-web
 ```
 
 ```ts
-import { createRecognizer, resolveOrientation, placementToFen } from "@avanubh/fenshot";
+import { createRecognizer, resolveOrientation, placementToFen } from "@avanubh/record-fen";
 
 const recognizer = createRecognizer({
   modelUrl: "/models/chess-tiles-v2.onnx",
@@ -60,7 +60,7 @@ if (result?.reliable) {
 }
 ```
 
-Full API docs and bundler specifics: [packages/fenshot/README.md](packages/fenshot/README.md).
+Full API docs and bundler specifics: [packages/record-fen/README.md](packages/record-fen/README.md).
 
 ---
 
@@ -68,7 +68,7 @@ Full API docs and bundler specifics: [packages/fenshot/README.md](packages/fensh
 
 | Path | What |
 |------|------|
-| `packages/fenshot` | The npm package (`@avanubh/fenshot`): detection, homography, CNN classification, FEN composition |
+| `packages/record-fen` | The npm package (`@avanubh/record-fen`): detection, homography, CNN classification, FEN composition |
 | `apps/extension` | Browser extension (Chrome + Firefox + Edge): one-click scan of the visible page |
 | `apps/web` | Demo app (Vite + React), deployed to GitHub Pages |
 | `tools/tile-classifier` | Training pipeline and evaluation gates |
@@ -80,7 +80,7 @@ Full API docs and bundler specifics: [packages/fenshot/README.md](packages/fensh
 ```bash
 npm install
 npm test              # runs all 122 unit and regression tests
-npm run build         # builds @avanubh/fenshot
+npm run build         # builds @avanubh/record-fen
 npm run dev           # runs the web demo
 ```
 

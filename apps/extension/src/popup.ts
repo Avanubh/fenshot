@@ -23,7 +23,7 @@ import {
   resolveOrientation,
   placementToFen,
   type BoardScanResult,
-} from "@avanubh/fenshot";
+} from "@avanubh/record-fen";
 import { pieceElement } from "./pieces";
 import {
   collectPageText,

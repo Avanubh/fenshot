@@ -1,5 +1,5 @@
 {
-  "name": "@avanubh/fenshot",
+  "name": "@avanubh/record-fen",
   "version": "1.0.0",
   "description": "Screenshot in, FEN out. State-of-the-art chessboard recognition: Paul Heckbert projective homography, FIDE legality arbitration, 2D energy auto-cropping, and on-device ONNX CNN tile classification.",
   "type": "module",
@@ -38,6 +38,7 @@
   "keywords": [
     "chess",
     "fen",
+    "recordfen",
     "screenshot",
     "ocr",
     "chessboard",
@@ -51,10 +52,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Avanubh/fenshot.git"
+    "url": "git+https://github.com/Avanubh/recordFen.git"
   },
-  "homepage": "https://github.com/Avanubh/fenshot#readme",
+  "homepage": "https://github.com/Avanubh/recordFen#readme",
   "bugs": {
-    "url": "https://github.com/Avanubh/fenshot/issues"
+    "url": "https://github.com/Avanubh/recordFen/issues"
   }
 }

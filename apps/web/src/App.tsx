@@ -5,13 +5,13 @@ import {
   resolveOrientation,
   placementToFen,
   type BoardScanResult,
-} from "@avanubh/fenshot";
+} from "@avanubh/record-fen";
 import { Board } from "./Board";
 // src/ort/ is synced from onnxruntime-web by scripts/sync-ort.mjs
 // (predev/prebuild); ?url makes Vite emit the files as hashed assets.
 import ortMjsUrl from "./ort/ort-wasm-simd-threaded.mjs?url";
 import ortWasmUrl from "./ort/ort-wasm-simd-threaded.wasm?url";
-import modelUrl from "../../../packages/fenshot/model/chess-tiles-v2.onnx?url";
+import modelUrl from "../../../packages/record-fen/model/chess-tiles-v2.onnx?url";
 
 const BASE = import.meta.env.BASE_URL;
 

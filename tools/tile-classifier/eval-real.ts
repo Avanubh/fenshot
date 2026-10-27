@@ -19,11 +19,11 @@ import sharp from "sharp";
 import * as ort from "onnxruntime-web";
 
 
-import { recognizeGray, rgbaToGray, extractTiles, probsToPlacement, flipPlacement, resolveOrientation, type BoardCorners } from "@avanubh/fenshot";
+import { recognizeGray, rgbaToGray, extractTiles, probsToPlacement, flipPlacement, resolveOrientation, type BoardCorners } from "@avanubh/record-fen";
 
 const MAX_DETECT_DIM = 1600;
 const fixturesArg = process.argv.indexOf("--fixtures");
-const FIXTURES = fixturesArg > -1 ? process.argv[fixturesArg + 1] : "packages/fenshot/tests/fixtures";
+const FIXTURES = fixturesArg > -1 ? process.argv[fixturesArg + 1] : "packages/record-fen/tests/fixtures";
 
 interface EvalCase {
   path: string;
