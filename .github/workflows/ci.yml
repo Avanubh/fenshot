@@ -15,8 +15,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build -w @scoriiu/fenshot
-      - run: npm test -w @scoriiu/fenshot
+      - run: npm run build -w @avanubh/fenshot
+      - run: npm test -w @avanubh/fenshot
       - run: npm run build -w web
       - run: npm run build -w extension
       - run: npm test -w extension

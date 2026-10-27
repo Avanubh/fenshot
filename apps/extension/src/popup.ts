@@ -23,7 +23,7 @@ import {
   resolveOrientation,
   placementToFen,
   type BoardScanResult,
-} from "@scoriiu/fenshot";
+} from "@avanubh/fenshot";
 import { pieceElement } from "./pieces";
 import {
   collectPageText,
@@ -101,7 +101,7 @@ function render(...content: HTMLElement[]) {
     // sits a few px under it). Only on a result screen.
     footer.append(ratingAskEl(footer));
   } else {
-    footer.append("runs on your device \u00b7 ", link("https://github.com/scoriiu/fenshot", "", "open source"));
+    footer.append("runs on your device \u00b7 ", link("https://github.com/Avanubh/fenshot", "", "open source"));
   }
   if (document.body.classList.contains("two")) {
     // Wide layout: the footer line fits in the brand row, which buys
@@ -494,7 +494,7 @@ function ratingAskEl(footer: HTMLElement): HTMLElement {
   const row = el("span", "rating-ask");
   const restore = () => {
     settleRatingAsk(window.localStorage);
-    footer.replaceChildren("runs on your device \u00b7 ", link("https://github.com/scoriiu/fenshot", "", "open source"));
+    footer.replaceChildren("runs on your device \u00b7 ", link("https://github.com/Avanubh/fenshot", "", "open source"));
   };
   row.append(el("span", "", "Useful? "));
   const yes = link(STORE_URLS[detectStore(navigator.userAgent)], "linkish strong", "Rate it");

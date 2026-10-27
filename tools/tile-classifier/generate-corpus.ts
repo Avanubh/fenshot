@@ -21,7 +21,7 @@ import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import sharp from "sharp";
 import { Chess } from "chess.js";
-import { rgbaToGray, extractBoardImage, boardToTiles } from "@scoriiu/fenshot";
+import { rgbaToGray, extractBoardImage, boardToTiles } from "@avanubh/fenshot";
 
 const ASSETS = ".tmp/scan-assets";
 const outArg = process.argv.indexOf("--out");

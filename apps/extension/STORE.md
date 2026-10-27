@@ -35,7 +35,7 @@ PRIVATE BY DESIGN
 • Reads the page only when you click the icon, and only that tab
 • The neural network runs 100% on your device. Nothing is uploaded
 • No account, no analytics, no tracking
-• Open source (MIT): github.com/scoriiu/fenshot
+• Open source (MIT): github.com/Avanubh/fenshot
 
 HONEST WHEN IT IS UNSURE
 Works with Lichess and chess.com themes, book diagrams and most piece sets. When a board is hard to read, fenshot tells you instead of guessing, and opens an editor so you can fix the squares.

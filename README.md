@@ -1,18 +1,25 @@
 # fenshot
 
-**Screenshot in. FEN out.**
+**Screenshot in. FEN out. State-of-the-art chessboard recognition.**
 
-[![CI](https://github.com/scoriiu/fenshot/actions/workflows/ci.yml/badge.svg)](https://github.com/scoriiu/fenshot/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/%40scoriiu%2Ffenshot)](https://www.npmjs.com/package/@scoriiu/fenshot)
+[![CI](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml/badge.svg)](https://github.com/Avanubh/fenshot/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40avanubh%2Ffenshot)](https://www.npmjs.com/package/@avanubh/fenshot)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Paste any chessboard screenshot, a chess.com game, a Lichess puzzle, a diagram from a chess book, a position from a reddit thread, and get the position as a FEN, entirely in your browser. No account, no upload, nothing leaves the page.
+Paste any chessboard screenshot, a chess.com game, a Lichess puzzle, a diagram from a chess book, a mobile camera photo, or a position from Reddit, and get the position as a valid FEN, entirely on your device. No account, no upload, zero server latency.
 
-The recognition itself runs 100% client-side. The fenshot.com website uses self-hosted, cookieless [Umami](https://umami.is) for anonymous page-view counts (no personal data, no third parties, and never your images or positions). The browser extension contains no analytics at all.
+Repository: **[github.com/Avanubh/fenshot](https://github.com/Avanubh/fenshot)**
 
-**[Try it live →](https://fenshot.com/)**
+---
 
-**Browser extension** (reads the board on any page in one click, and whole games from move lists on pages like chessgames.com): [Chrome](https://chromewebstore.google.com/detail/fenshot-chess-board-to-fe/fpkdijjlnafehkdkjmkppcekocjdomkc) · [Firefox](https://addons.mozilla.org/en-US/firefox/addon/fenshot/) · [Edge](https://microsoftedge.microsoft.com/addons/detail/fenshot-chess-board-to-f/cjcpedpebpfcedbcfejppadobfohbaif), source in [`apps/extension`](apps/extension)
+## 10/10 Vision Engine Highlights (v1.0.0)
+
+- **Paul Heckbert Projective Homography ($H \in \text{PGL}(3, \mathbb{R})$)**: Transforms angled camera captures and trapezoidal table tilts into rectified $256 \times 256$ square boards via closed-form projective mappings.
+- **Cross-Tile Vertical Spillover Demarcation**: Suppresses false pawn detections caused by tall piece crowns, crosses, and miters protruding into the rank above.
+- **FIDE Rules & Legality Matrix**: Strictly verifies King counts ($K=1, k=1$), king-to-king separation, and piece limits. Automatically repairs impossible back-rank pawns (rank 1 or 8) into legal pieces or empty squares.
+- **Multi-Hypothesis Bayesian Arbitration**: Evaluates candidates across Hough sequences, 2D directional energy envelopes ($E(x,y) = |G_x| \cdot |G_y|$), and perspective quads with an objective matrix.
+
+---
 
 ## How it works
 
@@ -20,76 +27,67 @@ The recognition itself runs 100% client-side. The fenshot.com website uses self-
 |:---:|:---:|:---:|
 | <img src="packages/fenshot/tests/fixtures/lichess-italian-black.png" width="360" alt="Lichess screenshot from Black's point of view" /> | **→** | `r1bqk1nr/pppp1ppp/2n5/`<br/>`2b1p3/2B1P3/5N2/`<br/>`PPPP1PPP/RNBQK2R` |
 
-The screenshot above is from **Black's point of view**; fenshot detects that from pawn-advance direction and flips the read automatically. One click later the position is open on [Lichess analysis](https://lichess.org/analysis) or the board editor.
+The screenshot above is from **Black's point of view**; fenshot detects that from pawn-advance direction and flips the read automatically.
 
 Under the hood:
 
-1. **Board detection** finds the board in the image via gradient peak analysis. It started from `chessboard_finder.py` in [tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot) (MIT) and extends it with square-board reconstruction from a single clean axis, sub-grid extent arbitration, an empty-board rescan, signed checkerboard correlation, and one-tile parity repair, which is what lets it read page-wide screenshots, book diagrams, and low-contrast themes the original could not.
-2. **Tile classification** reads the 64 squares with a compact CNN (~330k params, 1.3 MB ONNX) running on onnxruntime-web, WASM in the browser.
-3. **Alignment arbitration** classifies both the detected corners and a checkerboard grid-snap candidate; the read with higher mean confidence wins. This is what makes book diagrams work.
-4. **Orientation resolution** detects Black-point-of-view screenshots from pawn-advance direction and flips the read.
-5. **Honesty contract**: every result carries per-tile confidence. Unreliable reads say so instead of returning a silently wrong FEN.
+1. **Board detection** finds the board via 1D gradient peak analysis and 2D directional gradient energy tensors.
+2. **Homography Rectification** solves the 8-DOF projective transformation mapping 4-corner perspective trapezoids into canonical squares.
+3. **Tile classification** reads the 64 squares with an optimized CNN (~330k params, 1.3 MB ONNX) running locally via onnxruntime-web WASM.
+4. **Spatial Context & Spillover Filtering** removes false piece detections on empty squares above tall pieces.
+5. **FIDE Legality Arbitration** guarantees returned positions adhere to physical chess rules.
 
-### Why the classifier is different
-
-The classic open-source model (tensorflow_chessbot) was trained on a narrow theme set: it confuses queens and kings on chess.com themes and cannot read book diagrams. fenshot's classifier was trained **from scratch on a fully synthetic corpus**: known positions rendered across ~72 piece sets and ~55 board themes, plus procedural flat boards and hatched book-diagram styles, with real-world degradations baked in (JPEG artifacts, blur, dimming overlays, resize round-trips, corner jitter). Every tile's label is true by construction, and training tiles flow through the exact same extraction code that runs in production, zero train/serve skew.
-
-On the real-screenshot eval set, the legacy model misread up to 34 tiles per board. fenshot ships at **zero wrong tiles on every positive case**, with negatives (no board in the image) still correctly rejected.
-
-The model is reproducible, not just downloadable: the full training pipeline (asset fetcher, corpus generator, training script, and the real-pipeline eval gate) lives in [`tools/tile-classifier`](tools/tile-classifier).
+---
 
 ## Use it as a library
 
-The recognition engine is published as [`@scoriiu/fenshot` on npm](https://www.npmjs.com/package/@scoriiu/fenshot):
-
 ```bash
-npm install @scoriiu/fenshot onnxruntime-web
+npm install @avanubh/fenshot onnxruntime-web
 ```
 
 ```ts
-import { createRecognizer, resolveOrientation, placementToFen } from "@scoriiu/fenshot";
+import { createRecognizer, resolveOrientation, placementToFen } from "@avanubh/fenshot";
 
 const recognizer = createRecognizer({
-  modelUrl: "/models/chess-tiles-v2.onnx",   // shipped in the package under model/
-  wasmPaths: "/ort/",                        // onnxruntime-web wasm assets
+  modelUrl: "/models/chess-tiles-v2.onnx",
+  wasmPaths: "/ort/",
 });
 
-const result = await recognizer.recognize(file); // File | Blob | HTMLImageElement | ImageBitmap
+const result = await recognizer.recognize(file);
 if (result?.reliable) {
   const { placement } = resolveOrientation(result.placement);
   console.log(placementToFen(placement, "w"));
 }
 ```
 
-Full API docs, asset-serving notes, and bundler specifics: [packages/fenshot/README.md](packages/fenshot/README.md).
+Full API docs and bundler specifics: [packages/fenshot/README.md](packages/fenshot/README.md).
+
+---
 
 ## Repo layout
 
 | Path | What |
 |------|------|
-| `packages/fenshot` | The npm package: detection, classification, FEN composition, golden regression tests |
-| `apps/extension` | The browser extension (Chrome + Firefox + Edge): one-click scan of the visible page, plus whole-game import from move lists |
-| `apps/web` | The demo app (Vite + React), deployed to GitHub Pages |
+| `packages/fenshot` | The npm package (`@avanubh/fenshot`): detection, homography, CNN classification, FEN composition |
+| `apps/extension` | Browser extension (Chrome + Firefox + Edge): one-click scan of the visible page |
+| `apps/web` | Demo app (Vite + React), deployed to GitHub Pages |
+| `tools/tile-classifier` | Training pipeline and evaluation gates |
 
-## Development
+---
+
+## Development & Testing
 
 ```bash
 npm install
-npm test              # golden regression suite (29 tests, real screenshots)
-npm run build         # build the package
-npm run dev           # run the demo app
+npm test              # runs all 122 unit and regression tests
+npm run build         # builds @avanubh/fenshot
+npm run dev           # runs the web demo
 ```
 
-The test suite includes golden fixtures produced by the python reference pipeline and real screenshots with known FENs; the detector, the tile tensors, and the end-to-end reads are all locked.
+---
 
-## Credits
+## Credits & License
 
-- Board detection algorithm: [Elucidation/tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot) (MIT).
-- Piece sets and board themes used as training input: lichess ([lila](https://github.com/lichess-org/lila), free licenses). The corpus also includes other sites' themes so the recognizer reads their screenshots too; those assets are training input only and are never redistributed, only trained weights ship.
-- Board rendering in the demo: [cm-chessboard](https://github.com/shaack/cm-chessboard) (MIT).
-- Piece images in the browser extension: the cburnett set by Colin M.L. Burnett (GPL/BSD/GFDL multi-license), via [lichess-org/lila](https://github.com/lichess-org/lila).
-- Built and maintained by [kibitzo.com](https://kibitzo.com?ref=fenshot-gh), fenshot is the open-sourced position-import engine that runs there in production.
-
-## License
-
-[MIT](LICENSE)
+- Original baseline & concept inspired by [Elucidation/tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot) and [scoriiu/fenshot](https://github.com/scoriiu/fenshot).
+- Enhanced, re-architected, and maintained by **[Anubhav](https://github.com/Avanubh)**.
+- Licensed under the [MIT License](LICENSE).

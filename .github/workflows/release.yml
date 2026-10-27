@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes @scoriiu/fenshot to npm via trusted publishing (OIDC).
+# Publishes @avanubh/fenshot to npm via trusted publishing (OIDC).
 # No tokens: npmjs.com is configured to trust this workflow file in
 # this repository. Publish provenance is attested automatically.
 #
@@ -36,4 +36,4 @@ jobs:
             echo "Tag $GITHUB_REF_NAME does not match package version $PKG_VERSION"
             exit 1
           fi
-      - run: npm publish --workspace @scoriiu/fenshot
+      - run: npm publish --workspace @avanubh/fenshot

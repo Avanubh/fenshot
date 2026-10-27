@@ -19,7 +19,7 @@ import sharp from "sharp";
 import * as ort from "onnxruntime-web";
 
 
-import { recognizeGray, rgbaToGray, extractTiles, probsToPlacement, flipPlacement, resolveOrientation, type BoardCorners } from "@scoriiu/fenshot";
+import { recognizeGray, rgbaToGray, extractTiles, probsToPlacement, flipPlacement, resolveOrientation, type BoardCorners } from "@avanubh/fenshot";
 
 const MAX_DETECT_DIM = 1600;
 const fixturesArg = process.argv.indexOf("--fixtures");

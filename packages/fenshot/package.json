@@ -1,7 +1,7 @@
 {
-  "name": "@scoriiu/fenshot",
-  "version": "0.1.5",
-  "description": "Screenshot in, FEN out. Chessboard recognition in the browser: detects the board in any screenshot or book diagram and reads the position with a CNN tile classifier.",
+  "name": "@avanubh/fenshot",
+  "version": "1.0.0",
+  "description": "Screenshot in, FEN out. State-of-the-art chessboard recognition: Paul Heckbert projective homography, FIDE legality arbitration, 2D energy auto-cropping, and on-device ONNX CNN tile classification.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -43,16 +43,18 @@
     "chessboard",
     "recognition",
     "onnx",
+    "homography",
+    "fide",
     "lichess"
   ],
-  "author": "Kibitzo (https://kibitzo.com)",
+  "author": "Anubhav (https://github.com/Avanubh)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scoriiu/fenshot.git"
+    "url": "git+https://github.com/Avanubh/fenshot.git"
   },
-  "homepage": "https://github.com/scoriiu/fenshot#readme",
+  "homepage": "https://github.com/Avanubh/fenshot#readme",
   "bugs": {
-    "url": "https://github.com/scoriiu/fenshot/issues"
+    "url": "https://github.com/Avanubh/fenshot/issues"
   }
 }

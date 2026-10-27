@@ -5,7 +5,7 @@ import {
   resolveOrientation,
   placementToFen,
   type BoardScanResult,
-} from "@scoriiu/fenshot";
+} from "@avanubh/fenshot";
 import { Board } from "./Board";
 // src/ort/ is synced from onnxruntime-web by scripts/sync-ort.mjs
 // (predev/prebuild); ?url makes Vite emit the files as hashed assets.
@@ -175,7 +175,7 @@ export default function App() {
           <span className="brand-accent">fen</span>shot
         </h1>
         <p className="tagline">Chess screenshot in. FEN out. Nothing leaves your browser.</p>
-        <a className="gh-link" href="https://github.com/scoriiu/fenshot" target="_blank" rel="noreferrer">
+        <a className="gh-link" href="https://github.com/Avanubh/fenshot" target="_blank" rel="noreferrer">
           GitHub
         </a>
       </header>
